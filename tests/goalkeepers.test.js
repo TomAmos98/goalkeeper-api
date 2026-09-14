@@ -156,3 +156,14 @@ describe('GET /api/goalkeepers - filtering', () => {
     });
   });
 });
+
+describe('GET /api/goalkeepers - pagination', () => {
+  it('should paginate goalkeepers using page and limit', async () => {
+    const response = await request(app)
+      .get('/api/goalkeepers?page=2&limit=1');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.length).toBe(1);
+    expect(response.body[0].id).toBe(2);
+  });
+});
