@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 
@@ -18,6 +19,60 @@ function saveGoalkeepers(goalkeepers) {
     dataFile,
     JSON.stringify(goalkeepers, null, 2)
   );
+}
+
+const goalkeeperValidation = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required'),
+
+  body('club')
+    .trim()
+    .notEmpty()
+    .withMessage('Club is required'),
+
+  body('nationality')
+    .trim()
+    .notEmpty()
+    .withMessage('Nationality is required'),
+
+  body('age')
+    .isInt({ min: 16, max: 50 })
+    .withMessage('Age must be between 16 and 50')
+    .toInt(),
+
+  body('league')
+    .trim()
+    .notEmpty()
+    .withMessage('League is required'),
+
+  body('appearances')
+    .isInt({ min: 0 })
+    .withMessage('Appearances must be 0 or higher')
+    .toInt(),
+
+  body('cleanSheets')
+    .isInt({ min: 0 })
+    .withMessage('Clean sheets must be 0 or higher')
+    .toInt(),
+
+  body('savePercentage')
+    .isFloat({ min: 0, max: 100 })
+    .withMessage('Save percentage must be between 0 and 100')
+    .toFloat()
+];
+
+function handleValidationErrors(req, res, next) {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array()
+    });
+  }
+
+  next();
 }
 
 // GET all goalkeepers + filtering + pagination
@@ -64,48 +119,58 @@ app.get('/api/goalkeepers/:id', (req, res) => {
 });
 
 // POST create goalkeeper
-app.post('/api/goalkeepers', (req, res) => {
-  const goalkeepers = getGoalkeepers();
+app.post(
+  '/api/goalkeepers',
+  goalkeeperValidation,
+  handleValidationErrors,
+  (req, res) => {
+    const goalkeepers = getGoalkeepers();
 
-  const newGoalkeeper = {
-    id:
-      goalkeepers.length > 0
-        ? Math.max(...goalkeepers.map((goalkeeper) => goalkeeper.id)) + 1
-        : 1,
-    ...req.body
-  };
+    const newGoalkeeper = {
+      id:
+        goalkeepers.length > 0
+          ? Math.max(...goalkeepers.map((goalkeeper) => goalkeeper.id)) + 1
+          : 1,
+      ...req.body
+    };
 
-  goalkeepers.push(newGoalkeeper);
-  saveGoalkeepers(goalkeepers);
+    goalkeepers.push(newGoalkeeper);
+    saveGoalkeepers(goalkeepers);
 
-  res.status(201).json(newGoalkeeper);
-});
+    res.status(201).json(newGoalkeeper);
+  }
+);
 
 // PUT update goalkeeper
-app.put('/api/goalkeepers/:id', (req, res) => {
-  const goalkeepers = getGoalkeepers();
-  const id = Number(req.params.id);
+app.put(
+  '/api/goalkeepers/:id',
+  goalkeeperValidation,
+  handleValidationErrors,
+  (req, res) => {
+    const goalkeepers = getGoalkeepers();
+    const id = Number(req.params.id);
 
-  const goalkeeperIndex = goalkeepers.findIndex(
-    (goalkeeper) => goalkeeper.id === id
-  );
+    const goalkeeperIndex = goalkeepers.findIndex(
+      (goalkeeper) => goalkeeper.id === id
+    );
 
-  if (goalkeeperIndex === -1) {
-    return res.status(404).json({
-      message: 'Goalkeeper not found'
-    });
+    if (goalkeeperIndex === -1) {
+      return res.status(404).json({
+        message: 'Goalkeeper not found'
+      });
+    }
+
+    const updatedGoalkeeper = {
+      id,
+      ...req.body
+    };
+
+    goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
+    saveGoalkeepers(goalkeepers);
+
+    res.status(200).json(updatedGoalkeeper);
   }
-
-  const updatedGoalkeeper = {
-    id,
-    ...req.body
-  };
-
-  goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
-  saveGoalkeepers(goalkeepers);
-
-  res.status(200).json(updatedGoalkeeper);
-});
+);
 
 // DELETE goalkeeper
 app.delete('/api/goalkeepers/:id', (req, res) => {
