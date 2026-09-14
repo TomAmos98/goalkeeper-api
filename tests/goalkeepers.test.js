@@ -34,3 +34,25 @@ describe('GET /api/goalkeepers/:id - not found', () => {
     expect(response.statusCode).toBe(404);
   });
 });
+describe('POST /api/goalkeepers', () => {
+  it('should create a new goalkeeper', async () => {
+    const newGoalkeeper = {
+      name: 'Alex Berg',
+      club: 'Liverpool',
+      nationality: 'Sweden',
+      age: 24,
+      league: 'Premier League',
+      appearances: 18,
+      cleanSheets: 7,
+      savePercentage: 76
+    };
+
+    const response = await request(app)
+      .post('/api/goalkeepers')
+      .send(newGoalkeeper);
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body.name).toBe('Alex Berg');
+    expect(response.body.id).toBeDefined();
+  });
+});
