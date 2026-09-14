@@ -206,3 +206,15 @@ describe('POST /api/goalkeepers - sanitization', () => {
     expect(response.body.league).toBe('Premier League');
   });
 });
+
+describe('API error handling', () => {
+  it('should return 500 if the data storage is broken', async () => {
+    fs.writeFileSync(dataFile, 'invalid json');
+
+    const response = await request(app)
+      .get('/api/goalkeepers');
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body.message).toBe('Internal server error');
+  });
+});
