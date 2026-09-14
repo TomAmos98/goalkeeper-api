@@ -20,7 +20,7 @@ function saveGoalkeepers(goalkeepers) {
   );
 }
 
-// GET all goalkeepers + filtering
+// GET all goalkeepers + filtering + pagination
 app.get('/api/goalkeepers', (req, res) => {
   let goalkeepers = getGoalkeepers();
 
@@ -30,6 +30,16 @@ app.get('/api/goalkeepers', (req, res) => {
         goalkeeper.nationality.toLowerCase() ===
         req.query.nationality.toLowerCase()
     );
+  }
+
+  if (req.query.page || req.query.limit) {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || goalkeepers.length;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    goalkeepers = goalkeepers.slice(startIndex, endIndex);
   }
 
   res.status(200).json(goalkeepers);
