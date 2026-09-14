@@ -21,6 +21,12 @@ function saveGoalkeepers(goalkeepers) {
   );
 }
 
+function sendServerError(res) {
+  return res.status(500).json({
+    message: 'Internal server error'
+  });
+}
+
 const goalkeeperValidation = [
   body('name')
     .trim()
@@ -77,45 +83,53 @@ function handleValidationErrors(req, res, next) {
 
 // GET all goalkeepers + filtering + pagination
 app.get('/api/goalkeepers', (req, res) => {
-  let goalkeepers = getGoalkeepers();
+  try {
+    let goalkeepers = getGoalkeepers();
 
-  if (req.query.nationality) {
-    goalkeepers = goalkeepers.filter(
-      (goalkeeper) =>
-        goalkeeper.nationality.toLowerCase() ===
-        req.query.nationality.toLowerCase()
-    );
+    if (req.query.nationality) {
+      goalkeepers = goalkeepers.filter(
+        (goalkeeper) =>
+          goalkeeper.nationality.toLowerCase() ===
+          req.query.nationality.toLowerCase()
+      );
+    }
+
+    if (req.query.page || req.query.limit) {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || goalkeepers.length;
+
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+
+      goalkeepers = goalkeepers.slice(startIndex, endIndex);
+    }
+
+    res.status(200).json(goalkeepers);
+  } catch (error) {
+    sendServerError(res);
   }
-
-  if (req.query.page || req.query.limit) {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || goalkeepers.length;
-
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-
-    goalkeepers = goalkeepers.slice(startIndex, endIndex);
-  }
-
-  res.status(200).json(goalkeepers);
 });
 
 // GET goalkeeper by id
 app.get('/api/goalkeepers/:id', (req, res) => {
-  const goalkeepers = getGoalkeepers();
-  const id = Number(req.params.id);
+  try {
+    const goalkeepers = getGoalkeepers();
+    const id = Number(req.params.id);
 
-  const goalkeeper = goalkeepers.find(
-    (goalkeeper) => goalkeeper.id === id
-  );
+    const goalkeeper = goalkeepers.find(
+      (goalkeeper) => goalkeeper.id === id
+    );
 
-  if (!goalkeeper) {
-    return res.status(404).json({
-      message: 'Goalkeeper not found'
-    });
+    if (!goalkeeper) {
+      return res.status(404).json({
+        message: 'Goalkeeper not found'
+      });
+    }
+
+    res.status(200).json(goalkeeper);
+  } catch (error) {
+    sendServerError(res);
   }
-
-  res.status(200).json(goalkeeper);
 });
 
 // POST create goalkeeper
@@ -124,20 +138,26 @@ app.post(
   goalkeeperValidation,
   handleValidationErrors,
   (req, res) => {
-    const goalkeepers = getGoalkeepers();
+    try {
+      const goalkeepers = getGoalkeepers();
 
-    const newGoalkeeper = {
-      id:
-        goalkeepers.length > 0
-          ? Math.max(...goalkeepers.map((goalkeeper) => goalkeeper.id)) + 1
-          : 1,
-      ...req.body
-    };
+      const newGoalkeeper = {
+        id:
+          goalkeepers.length > 0
+            ? Math.max(
+                ...goalkeepers.map((goalkeeper) => goalkeeper.id)
+              ) + 1
+            : 1,
+        ...req.body
+      };
 
-    goalkeepers.push(newGoalkeeper);
-    saveGoalkeepers(goalkeepers);
+      goalkeepers.push(newGoalkeeper);
+      saveGoalkeepers(goalkeepers);
 
-    res.status(201).json(newGoalkeeper);
+      res.status(201).json(newGoalkeeper);
+    } catch (error) {
+      sendServerError(res);
+    }
   }
 );
 
@@ -147,6 +167,38 @@ app.put(
   goalkeeperValidation,
   handleValidationErrors,
   (req, res) => {
+    try {
+      const goalkeepers = getGoalkeepers();
+      const id = Number(req.params.id);
+
+      const goalkeeperIndex = goalkeepers.findIndex(
+        (goalkeeper) => goalkeeper.id === id
+      );
+
+      if (goalkeeperIndex === -1) {
+        return res.status(404).json({
+          message: 'Goalkeeper not found'
+        });
+      }
+
+      const updatedGoalkeeper = {
+        id,
+        ...req.body
+      };
+
+      goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
+      saveGoalkeepers(goalkeepers);
+
+      res.status(200).json(updatedGoalkeeper);
+    } catch (error) {
+      sendServerError(res);
+    }
+  }
+);
+
+// DELETE goalkeeper
+app.delete('/api/goalkeepers/:id', (req, res) => {
+  try {
     const goalkeepers = getGoalkeepers();
     const id = Number(req.params.id);
 
@@ -160,39 +212,15 @@ app.put(
       });
     }
 
-    const updatedGoalkeeper = {
-      id,
-      ...req.body
-    };
-
-    goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
+    goalkeepers.splice(goalkeeperIndex, 1);
     saveGoalkeepers(goalkeepers);
 
-    res.status(200).json(updatedGoalkeeper);
-  }
-);
-
-// DELETE goalkeeper
-app.delete('/api/goalkeepers/:id', (req, res) => {
-  const goalkeepers = getGoalkeepers();
-  const id = Number(req.params.id);
-
-  const goalkeeperIndex = goalkeepers.findIndex(
-    (goalkeeper) => goalkeeper.id === id
-  );
-
-  if (goalkeeperIndex === -1) {
-    return res.status(404).json({
-      message: 'Goalkeeper not found'
+    res.status(200).json({
+      message: 'Goalkeeper deleted'
     });
+  } catch (error) {
+    sendServerError(res);
   }
-
-  goalkeepers.splice(goalkeeperIndex, 1);
-  saveGoalkeepers(goalkeepers);
-
-  res.status(200).json({
-    message: 'Goalkeeper deleted'
-  });
 });
 
 module.exports = app;
