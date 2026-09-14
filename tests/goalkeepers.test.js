@@ -127,3 +127,18 @@ describe('PUT /api/goalkeepers/:id', () => {
     expect(response.body.savePercentage).toBe(79);
   });
 });
+
+describe('DELETE /api/goalkeepers/:id', () => {
+  it('should delete an existing goalkeeper', async () => {
+    const response = await request(app)
+      .delete('/api/goalkeepers/2');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.message).toBe('Goalkeeper deleted');
+
+    const getResponse = await request(app)
+      .get('/api/goalkeepers/2');
+
+    expect(getResponse.statusCode).toBe(404);
+  });
+});
