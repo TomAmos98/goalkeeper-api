@@ -1,5 +1,52 @@
 const request = require('supertest');
+const fs = require('fs');
+const path = require('path');
 const app = require('../src/app');
+
+const dataFile = path.join(__dirname, '../data/goalkeepers.json');
+
+const originalGoalkeepers = [
+  {
+    id: 1,
+    name: 'Tom Amos',
+    club: 'Arsenal',
+    nationality: 'Sweden',
+    age: 28,
+    league: 'Premier League',
+    appearances: 25,
+    cleanSheets: 12,
+    savePercentage: 78
+  },
+  {
+    id: 2,
+    name: 'David Nord',
+    club: 'Chelsea',
+    nationality: 'Sweden',
+    age: 26,
+    league: 'Premier League',
+    appearances: 20,
+    cleanSheets: 8,
+    savePercentage: 74
+  },
+  {
+    id: 3,
+    name: 'Marco Silva',
+    club: 'Porto',
+    nationality: 'Portugal',
+    age: 30,
+    league: 'Primeira Liga',
+    appearances: 28,
+    cleanSheets: 14,
+    savePercentage: 81
+  }
+];
+
+beforeEach(() => {
+  fs.writeFileSync(
+    dataFile,
+    JSON.stringify(originalGoalkeepers, null, 2)
+  );
+});
 
 describe('GET /api/goalkeepers', () => {
   it('should return all goalkeepers', async () => {
@@ -34,6 +81,7 @@ describe('GET /api/goalkeepers/:id - not found', () => {
     expect(response.statusCode).toBe(404);
   });
 });
+
 describe('POST /api/goalkeepers', () => {
   it('should create a new goalkeeper', async () => {
     const newGoalkeeper = {
@@ -54,5 +102,28 @@ describe('POST /api/goalkeepers', () => {
     expect(response.statusCode).toBe(201);
     expect(response.body.name).toBe('Alex Berg');
     expect(response.body.id).toBeDefined();
+  });
+});
+
+describe('PUT /api/goalkeepers/:id', () => {
+  it('should update an existing goalkeeper', async () => {
+    const updatedGoalkeeper = {
+      name: 'Tom Amos',
+      club: 'Manchester United',
+      nationality: 'Sweden',
+      age: 28,
+      league: 'Premier League',
+      appearances: 26,
+      cleanSheets: 13,
+      savePercentage: 79
+    };
+
+    const response = await request(app)
+      .put('/api/goalkeepers/1')
+      .send(updatedGoalkeeper);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.club).toBe('Manchester United');
+    expect(response.body.savePercentage).toBe(79);
   });
 });
