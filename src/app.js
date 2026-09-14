@@ -63,4 +63,30 @@ app.post('/api/goalkeepers', (req, res) => {
   res.status(201).json(newGoalkeeper);
 });
 
+// PUT update goalkeeper
+app.put('/api/goalkeepers/:id', (req, res) => {
+  const goalkeepers = getGoalkeepers();
+  const id = Number(req.params.id);
+
+  const goalkeeperIndex = goalkeepers.findIndex(
+    (goalkeeper) => goalkeeper.id === id
+  );
+
+  if (goalkeeperIndex === -1) {
+    return res.status(404).json({
+      message: 'Goalkeeper not found'
+    });
+  }
+
+  const updatedGoalkeeper = {
+    id,
+    ...req.body
+  };
+
+  goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
+  saveGoalkeepers(goalkeepers);
+
+  res.status(200).json(updatedGoalkeeper);
+});
+
 module.exports = app;
