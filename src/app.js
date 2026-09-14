@@ -20,9 +20,17 @@ function saveGoalkeepers(goalkeepers) {
   );
 }
 
-// GET all goalkeepers
+// GET all goalkeepers + filtering
 app.get('/api/goalkeepers', (req, res) => {
-  const goalkeepers = getGoalkeepers();
+  let goalkeepers = getGoalkeepers();
+
+  if (req.query.nationality) {
+    goalkeepers = goalkeepers.filter(
+      (goalkeeper) =>
+        goalkeeper.nationality.toLowerCase() ===
+        req.query.nationality.toLowerCase()
+    );
+  }
 
   res.status(200).json(goalkeepers);
 });
