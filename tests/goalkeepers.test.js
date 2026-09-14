@@ -8,6 +8,14 @@ describe('GET /api/goalkeepers', () => {
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
   });
+
+  it('should return goalkeepers from JSON storage', async () => {
+    const response = await request(app).get('/api/goalkeepers');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.length).toBe(3);
+    expect(response.body[0].name).toBe('Tom Amos');
+  });
 });
 
 describe('GET /api/goalkeepers/:id', () => {
