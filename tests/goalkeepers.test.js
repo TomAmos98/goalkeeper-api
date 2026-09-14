@@ -167,3 +167,17 @@ describe('GET /api/goalkeepers - pagination', () => {
     expect(response.body[0].id).toBe(2);
   });
 });
+
+describe('POST /api/goalkeepers - validation', () => {
+  it('should return 400 if required fields are missing', async () => {
+    const invalidGoalkeeper = {
+      name: 'Test Keeper'
+    };
+
+    const response = await request(app)
+      .post('/api/goalkeepers')
+      .send(invalidGoalkeeper);
+
+    expect(response.statusCode).toBe(400);
+  });
+});
