@@ -89,4 +89,27 @@ app.put('/api/goalkeepers/:id', (req, res) => {
   res.status(200).json(updatedGoalkeeper);
 });
 
+// DELETE goalkeeper
+app.delete('/api/goalkeepers/:id', (req, res) => {
+  const goalkeepers = getGoalkeepers();
+  const id = Number(req.params.id);
+
+  const goalkeeperIndex = goalkeepers.findIndex(
+    (goalkeeper) => goalkeeper.id === id
+  );
+
+  if (goalkeeperIndex === -1) {
+    return res.status(404).json({
+      message: 'Goalkeeper not found'
+    });
+  }
+
+  goalkeepers.splice(goalkeeperIndex, 1);
+  saveGoalkeepers(goalkeepers);
+
+  res.status(200).json({
+    message: 'Goalkeeper deleted'
+  });
+});
+
 module.exports = app;
