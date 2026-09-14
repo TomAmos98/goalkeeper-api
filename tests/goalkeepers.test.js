@@ -181,3 +181,28 @@ describe('POST /api/goalkeepers - validation', () => {
     expect(response.statusCode).toBe(400);
   });
 });
+
+describe('POST /api/goalkeepers - sanitization', () => {
+  it('should trim whitespace from text input', async () => {
+    const goalkeeper = {
+      name: '   Test Keeper   ',
+      club: '   Arsenal   ',
+      nationality: '   Sweden   ',
+      age: 25,
+      league: '   Premier League   ',
+      appearances: 10,
+      cleanSheets: 5,
+      savePercentage: 75
+    };
+
+    const response = await request(app)
+      .post('/api/goalkeepers')
+      .send(goalkeeper);
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body.name).toBe('Test Keeper');
+    expect(response.body.club).toBe('Arsenal');
+    expect(response.body.nationality).toBe('Sweden');
+    expect(response.body.league).toBe('Premier League');
+  });
+});
