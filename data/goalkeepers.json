@@ -31,5 +31,16 @@
     "appearances": 28,
     "cleanSheets": 14,
     "savePercentage": 81
+  },
+  {
+    "id": 4,
+    "name": "Alex Berg",
+    "club": "Liverpool",
+    "nationality": "Sweden",
+    "age": 24,
+    "league": "Premier League",
+    "appearances": 18,
+    "cleanSheets": 7,
+    "savePercentage": 76
   }
 ]
