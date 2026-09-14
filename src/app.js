@@ -21,6 +21,12 @@ app.get('/api/goalkeepers/:id', (req, res) => {
     savePercentage: 78
   };
 
+  const id = Number(req.params.id);
+
+  if (id !== goalkeeper.id) {
+    return res.status(404).json({ message: 'Goalkeeper not found' });
+  }
+
   res.status(200).json(goalkeeper);
 });
 
