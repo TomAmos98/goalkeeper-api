@@ -142,3 +142,17 @@ describe('DELETE /api/goalkeepers/:id', () => {
     expect(getResponse.statusCode).toBe(404);
   });
 });
+
+describe('GET /api/goalkeepers - filtering', () => {
+  it('should filter goalkeepers by nationality', async () => {
+    const response = await request(app)
+      .get('/api/goalkeepers?nationality=Sweden');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.length).toBe(2);
+
+    response.body.forEach((goalkeeper) => {
+      expect(goalkeeper.nationality).toBe('Sweden');
+    });
+  });
+});
