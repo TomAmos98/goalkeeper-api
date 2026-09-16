@@ -41,11 +41,21 @@ const originalGoalkeepers = [
   }
 ];
 
-beforeEach(() => {
+function resetDataFile() {
   fs.writeFileSync(
     dataFile,
     JSON.stringify(originalGoalkeepers, null, 2)
   );
+}
+
+// Restore clean test data before every test
+beforeEach(() => {
+  resetDataFile();
+});
+
+// IMPORTANT: restore the JSON file after all tests have finished
+afterAll(() => {
+  resetDataFile();
 });
 
 describe('GET /api/goalkeepers', () => {
