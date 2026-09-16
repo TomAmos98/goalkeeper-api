@@ -147,13 +147,13 @@ app.post(
       const goalkeepers = getGoalkeepers();
 
       const newGoalkeeper = {
+        ...req.body,
         id:
           goalkeepers.length > 0
             ? Math.max(
                 ...goalkeepers.map((goalkeeper) => goalkeeper.id)
               ) + 1
-            : 1,
-        ...req.body
+            : 1
       };
 
       goalkeepers.push(newGoalkeeper);
@@ -187,8 +187,8 @@ app.put(
       }
 
       const updatedGoalkeeper = {
-        id,
-        ...req.body
+        ...req.body,
+        id
       };
 
       goalkeepers[goalkeeperIndex] = updatedGoalkeeper;
